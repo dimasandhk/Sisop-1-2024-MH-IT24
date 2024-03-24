@@ -6,27 +6,26 @@ unzip genshin.zip
 
 unzip genshin_character.zip
 
-for encoded_filename in genshin_character/*; do
-    encoded_basename=$(basename "$encoded_filename")
-    decoded_filename=$(echo -n "$encoded_basename" | xxd -r -p)
-    mv "$encoded_filename" "genshin_character/${decoded_filename}.jpg"
+for encoded_file in genshin_character/*; do
+    encoded_base=$(basename "$encoded_file")
+    decoded_name=$(echo -n "$encoded_base" | xxd -r -p)
+    mv "$encoded_file" "genshin_character/${decoded_name}.jpg"
 
-    decoded_basename=$(basename "$decoded_filename")
-    character_info=$(grep "$decoded_basename" list_character.csv)
+    decoded_base=$(basename "$decoded_name")
+    info=$(grep "$decoded_base" list_character.csv)
 
-    if [ -n "$character_info" ]; then
-        character_name=$(echo "$character_info" | cut -d ',' -f 1)
-        character_region=$(echo "$character_info" | cut -d ',' -f 2)
-        character_element=$(echo "$character_info" | cut -d ',' -f 3)
-        character_weapon=$(echo "$character_info" | cut -d ',' -f 4)
-    fi
+    name=$(echo "$info" | awk -F ',' '{print $1}')
+    region=$(echo "$info" | awk -F ',' '{print $2}')
+    element=$(echo "$info" | awk -F ',' '{print $3}')
+    weapon=$(echo "$info" | awk -F ',' '{print $4}')
 
-    mkdir -p "genshin_character/${character_region}"
+    mkdir -p "genshin_character/${region}"
 
-    new_filename="${character_region} - ${character_name} - ${character_element} - ${character_weapon}"
-    clean_filename=$(echo "$new_filename" | tr -d '\015')
-    mv "genshin_character/${decoded_filename}.jpg" "genshin_character/${character_region}/${clean_filename}.jpg"
+    new_name="${region} - ${name} - ${element} - ${weapon}"
+    clean_name=$(echo "$new_name" | tr -d '\015')
+    mv "genshin_character/${decoded_name}.jpg" "genshin_character/${region}/${clean_name}.jpg"
 done
+
 
 # B
 for weapon in Catalyst Sword Claymore Bow Polearm; do
