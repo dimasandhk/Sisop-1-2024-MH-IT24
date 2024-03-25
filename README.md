@@ -5,6 +5,15 @@ Anggota Kelompok:
 - Thio Billy Amansyah 5027231007
 
 ## Soal 1
+1.	`wget -O Sandbox.csv 'https://drive.google.com/uc?export=download&id=1cC6MYBI3wRwDgqlFQE1OQUN83JAreId0'`: Perintah ini menggunakan wget untuk mengunduh file CSV dari Google Drive. Opsi -O digunakan untuk menentukan nama file yang akan disimpan sebagai "Sandbox.csv".
+2.	`echo "Pelanggan dengan sales tertinggi: "`: Ini hanya mencetak pesan ke layar untuk memberi tahu pengguna bahwa output selanjutnya akan menampilkan pelanggan dengan penjualan tertinggi.
+3.	`echo "$(cat Sandbox.csv)" | awk -F ',' '{print $6",",$17}' | sort -t ',' -k2,2nr | head -n 1`: Bagian ini mengambil data dari file CSV, memprosesnya menggunakan awk untuk memilih kolom ke-6 (nama pelanggan) dan kolom ke-17 (nilai penjualan), kemudian mengurutkannya berdasarkan nilai penjualan (dari besar ke kecil) menggunakan sort, dan akhirnya mengambil baris pertama menggunakan `head -n 1`.
+4.	`echo "Segment pelanggan dengan profit paling kecil: "`: Ini adalah pesan yang akan dicetak ke layar sebelum menampilkan segment pelanggan dengan profit terendah.
+5.	`echo "$(cat Sandbox.csv)" | awk -F ',' '{print $7",",$20}' | sort -t ',' -k2,2n | head -n 2 | tail -n 1`: Ini mirip dengan langkah sebelumnya, hanya kali ini kita memilih kolom ke-7 (segment pelanggan) dan kolom ke-20 (profit), kemudian mengurutkannya berdasarkan profit (dari kecil ke besar), mengambil dua baris teratas, dan kemudian mengambil baris terakhir dari dua baris tersebut menggunakan `tail -n 1`.
+6.	`echo "3 kategori dengan total profit tertinggi: "`: Ini hanya mencetak pesan ke layar untuk memberi tahu pengguna bahwa output selanjutnya akan menampilkan 3 kategori dengan total profit tertinggi.
+7.	`echo "$(cat Sandbox.csv)" | awk -F ',' '{ categories[$14] += $20 } END { for (cat in categories) print cat",", categories[cat] }' | sort -t ',' -k2,2nr | head -n 3`: Bagian ini menggunakan awk untuk menghitung total profit untuk setiap kategori (kolom ke-14), kemudian mengurutkannya berdasarkan total profit (dari besar ke kecil), dan mengambil tiga baris teratas.
+8.	`echo "Tanggal pembelian dan jumlah/kuantitas dari pelanggan Adriaens: "`: Ini adalah pesan yang akan dicetak ke layar sebelum menampilkan tanggal pembelian dan jumlah pesanan dari pelanggan dengan nama "Adriaens".
+9.	`echo "$(cat Sandbox.csv)" | awk -F ',' '/Adriaens/ {print "Nama Pelanggan: "$6,"\nTanggal Pembelian: "$2,"\nJumlah Pesanan: "$18}'`: Ini menggunakan awk untuk mencari baris yang mengandung "Adriaens" dalam kolom ke-6 (nama pelanggan), kemudian mencetak nama pelanggan, tanggal pembelian (kolom ke-2), dan jumlah pesanan (kolom ke-18) dari baris tersebut
 
 ## Soal 2
 ### register.sh
