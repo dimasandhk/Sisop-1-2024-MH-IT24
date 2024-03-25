@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # C D E
-for category in genshin_character/*; do
-    for img in "$category"/*; do
+for region in genshin_character/*; do
+    for img in "$region"/*; do
         fname=$(echo "$img" | awk -F '/' '{print $3}')
         char=$(echo "$fname" | awk -F ' -' '{print $2}')
         steghide extract -sf "$img" -p "" -xf "${char}.txt"
