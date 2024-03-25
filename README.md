@@ -295,3 +295,134 @@ done
 ```
 
 ## Soal 4
+### minute_log.sh
+Mencatat penggunaan memory user setiap menit dengan command `free` dan `du`.
+
+```
+## Making the log file and dir required
+cd ~; if [! -d log] ;then mkdir log ; fi; cd log
+date=$(date "+%Y%m%d%k%M%S")
+min="metrics_$date.log"
+touch "$min"
+chmod 700 "$min"
+...
+```
+Bagian ini membuat direktori dan log file beserta user premission. Nama log file dimasukkan ke dalam variabel agar mempermudah dijadikan input dalam kode selanjutnya.
+
+```
+...
+## Header of log file
+echo "mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$min"
+
+## Runs on infinite loop
+while true ; do
+    ## Output log for every minute loop
+    { free -m; du -sh ~;} | awk 'NR==2 {print $2","$3","$4","$5","$6","$7}
+    NR==3 {print $2","$3","$4}
+    NR==4 {print $2","$1}
+    ' | paste -s -d ',' >> "$min" 
+...
+        
+```
+Barisan yang mengandung nama kolom dicetak terlebih dahulu di luar infinite loop agar tidak tercetak berulang-ulang ketika memory pengguna dicatat setiap menit.
+
+Menyatukan output dari beberapa command dapat dicapai dengan menutupnya dalam kurung kurawal `{` sebelum dilakukan piping.
+
+```
+baboi@baboi:~/Downloads/test$ sh ss.sh
+15552,3911,10305,552,2221,11640
+976,0,976
+/home/baboi,15G              
+                                                                
+baboi@baboi:~/Downloads/test$ sh ss.sh
+15552,3943,10274,555,2224,11608,976,0,976,/home/baboi,15G    <-- setelah disatukan
+```
+Hasil dari command kemudian dipilih-pilih dengan `awk` lalu disatukan oleh `paste` sebelum dicetak ke dalam log file.
+
+```
+...
+## Adding 'i' counter every minute
+i=$(($i+1))
+sleep 60
+
+## Create aggregate log file every hour
+if [ $(($i % 60)) -eq 0 ] ; then
+    sh aggregate_minutes_to_hourly_log.sh "$min"
+fi
+```
+Digunakan `i` sebagai counter waktu dimana bertambah setiap menit. Jika `i` mencapai nilai 60, maka `if` statement akan menjalankan script yang memberikan nilai max, min, dan rata-rata dari setiap segi memori yang dicatat sejak program dijalankan. 
+
+### aggregate_minutes_to_hourly_log.sh
+```
+## Create the aggregate log file
+datehr=$(date "+%Y%m%d%k")
+hr="metrics_$datehr.log"
+touch "$hr"
+chmod 700 "$hr"
+min=$1
+
+echo "type,mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$hr"
+...
+```
+Menciptakan log file dan mencetak header untuk file aggregat dengan tambahan dimasukannya variabel yang berisi judul dari log file yang akan dipakai.
+
+```
+...
+## Generate min, max, and avg
+cat "$min" | awk 'BEGIN{FS=","; OFS=","} 
+    NR>1{ min=$4;
+        if ($4>=max) {smax=$0}    <-- Anomali if conditional
+        max=($4>max)?$4:max    
+
+        if ($4<=min){smin=$0} 
+        min=($4<min)?$4:min 
+    }
+    END {print "minimum", smax; print "maximum", smax }
+' >>"$hr"
+...
+```
+Log file dibuka dan dicari *record*, konteks `awk`, dengan nilai maksimum dan minimumnya. Collumn 4 merepresentasikan shared memory. Hal itu menjadi patokan karena nilainya yang cenderung berubah-ubah dibanding dengan yang lain.
+```
+mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size
+15552,2912,11490,412,1892,12639,976,0,976,/home/baboi,15G
+15552,2917,11486,425,1904,12634,976,0,976,/home/baboi,15G
+15552,2911,11491,434,1914,12640,976,0,976,/home/baboi,15G
+15552,2921,11481,443,1923,12630,976,0,976,/home/baboi,15G
+15552,2887,11515,420,1900,12664,976,0,976,/home/baboi,15G
+                  ^ Baris empat dan lima cukup sering berubah nilai
+```
+Masih menjadi pertanyaan namun `if(cond)` dengan `(cond)?s1:s2` nampaknya memiliki implementasi yang berbeda dalam `awk` karena ketika menggunakan salah satu jenis conditional pada bagian min/max, maka akan menghasilkan error atau tidak sesuai yang diinginkan.
+```
+...
+smax=($4>=max)$0:"";    <-- anomali
+max=($4>max)?$4:max 
+...
+```
+Bagian nilai rata-rata dipisahkan karena pencetakkan array dalam awk menggunakan for loop tidak dapat dihasilkan dalam satu baris.
+```
+...
+cat "$min" | awk -v usr="$USER" 'BEGIN{FS=","; OFS=","} 
+    NR>1{ for(i = 1; i <= NF; i++) sum[i]+=$i } 
+    END { print "average"; for(i = 1; i <= NF; i++) {
+            if (i!=10)  {print sum[i]/(NR-1)} 
+            else {print "/home/" usr}
+        }
+    }
+' | paste -s -d "," >>"$hr"
+
+---Terminal---
+baboi@baboi:~/Downloads/test$ sh ss.sh
+average
+15552
+2909.6
+11492.6
+426.8
+1906.6
+12641.4
+976
+0
+976
+/home/baboi
+15
+
+```
