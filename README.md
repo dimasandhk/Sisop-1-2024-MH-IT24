@@ -4,7 +4,7 @@ Anggota Kelompok:
 - Mochamad Fadhil Saifullah 5027231068
 - Thio Billy Amansyah 5027231007
 
-## Soal 1
+## Soal 1 (tidak revisi)
 1.	`wget -O Sandbox.csv 'https://drive.google.com/uc?export=download&id=1cC6MYBI3wRwDgqlFQE1OQUN83JAreId0'`: Perintah ini menggunakan wget untuk mengunduh file CSV dari Google Drive. Opsi -O digunakan untuk menentukan nama file yang akan disimpan sebagai "Sandbox.csv".
 2.	`echo "Pelanggan dengan sales tertinggi: "`: Ini hanya mencetak pesan ke layar untuk memberi tahu pengguna bahwa output selanjutnya akan menampilkan pelanggan dengan penjualan tertinggi.
 3.	`echo "$(cat Sandbox.csv)" | awk -F ',' '{print $6",",$17}' | sort -t ',' -k2,2nr | head -n 1`: Bagian ini mengambil data dari file CSV, memprosesnya menggunakan awk untuk memilih kolom ke-6 (nama pelanggan) dan kolom ke-17 (nilai penjualan), kemudian mengurutkannya berdasarkan nilai penjualan (dari besar ke kecil) menggunakan sort, dan akhirnya mengambil baris pertama menggunakan `head -n 1`.
@@ -15,7 +15,11 @@ Anggota Kelompok:
 8.	`echo "Tanggal pembelian dan jumlah/kuantitas dari pelanggan Adriaens: "`: Ini adalah pesan yang akan dicetak ke layar sebelum menampilkan tanggal pembelian dan jumlah pesanan dari pelanggan dengan nama "Adriaens".
 9.	`echo "$(cat Sandbox.csv)" | awk -F ',' '/Adriaens/ {print "Nama Pelanggan: "$6,"\nTanggal Pembelian: "$2,"\nJumlah Pesanan: "$18}'`: Ini menggunakan awk untuk mencari baris yang mengandung "Adriaens" dalam kolom ke-6 (nama pelanggan), kemudian mencetak nama pelanggan, tanggal pembelian (kolom ke-2), dan jumlah pesanan (kolom ke-18) dari baris tersebut
 
-## Soal 2
+screenshot:\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/43a13e0b-c148-4f3c-b5e2-a8b8ee925072)
+
+
+## Soal 2 (tidak revisi)
 ### register.sh
 Pertama2 saya buat sistem registrasinya yang menerima 5 input (email, username, security question, security question's answer, password)
 
@@ -56,6 +60,9 @@ else
 fi
 ```
 syaratnya termasuk pastikan email tidak dipakai, dan syarat password seperti (Must be containing >= 8 char, at least 1 lowercase & uppercase letter, and at least 1 number)
+
+screenshot (register):\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/7acc1506-71af-4cc2-860d-51955d7c3857)\
 
 ### login.sh
 Untuk sistem login ini, saya buat banyak function karena kompleksitas programnya
@@ -227,6 +234,13 @@ fi
 ```
 di kode tersebut terlihat sama seperti sebelumnya function2 langsung dijalankan berdasarkan input dari admin. Untuk pembuatan function edit_user saya hanya menggabungkan dari function delete_user dan add_user
 
+screenshot (login non admin):\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/3021af6a-582c-4846-a880-991d23fcd6a3)\
+screenshot (login admin):\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/4469fdb3-44cc-4573-a8e0-e93cdbbacdec)\
+screenshot (forgot pw):\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/8c2493c4-f757-4d37-a3bd-cf38726298b1)
+
 ## Soal 3
 ### poin a (awal.sh)
 Untuk poin a program dimulai dari download zip dan unzip semua file zip yang ada, kemudian di `awal.sh` saya gunakan `for in loop` untuk mengubah nama file yang kemudian di dekode dari hex ke ascii dari setiap file jpg yang didownload. Nama file jpg diubah ke `region - nama - element - senjata.jpg`. Kemudian setiap file jpg dimasukkan ke folder yang sesuai dengan nama regionnya.
@@ -268,6 +282,12 @@ rm genshin.zip
 rm genshin_character.zip
 rm list_character.csv
 ```
+tree setelah run `awal.sh`:\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/c3b0a644-ab2f-4318-ad08-32b20047726e)\
+hasil perhitungan wep:\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/96c20f57-7962-4d58-9b3d-a4f7f7f1ef35)
+
+
 ### poin c, d, e (search.sh)
 untuk poin c saya sedikit bingung karena apa yang saya dapatkan dari ekstrak steghide terformat dalam enkripsi base64 bukan hex, jadi di kode saya lakukan dekrip dengan base64, di situ saya juga lakukan `for in loop` lagi untuk folder genshin_character dan juga untuk folder region di dalamnya
 ```bash
@@ -293,6 +313,11 @@ for region in genshin_character/*; do
     done
 done
 ```
+
+isi log:\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/6c86daf6-19d4-47b8-81a8-e1c7e34d12af)\
+isi txt (hasil decrypt ekstrak steghide dari gambar):\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/9b98e4c2-d0ab-4478-a123-a614ce05cc39)
 
 ## Soal 4
 ### minute_log.sh
