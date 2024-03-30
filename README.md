@@ -15,6 +15,8 @@ Anggota Kelompok:
 8.	`echo "Tanggal pembelian dan jumlah/kuantitas dari pelanggan Adriaens: "`: Ini adalah pesan yang akan dicetak ke layar sebelum menampilkan tanggal pembelian dan jumlah pesanan dari pelanggan dengan nama "Adriaens".
 9.	`echo "$(cat Sandbox.csv)" | awk -F ',' '/Adriaens/ {print "Nama Pelanggan: "$6,"\nTanggal Pembelian: "$2,"\nJumlah Pesanan: "$18}'`: Ini menggunakan awk untuk mencari baris yang mengandung "Adriaens" dalam kolom ke-6 (nama pelanggan), kemudian mencetak nama pelanggan, tanggal pembelian (kolom ke-2), dan jumlah pesanan (kolom ke-18) dari baris tersebut
 
+kendala: Cara mengesktrak informasi dari csv, cara menghitung untuk 3 kategori total profit tertinggi\
+
 screenshot:\
 ![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/43a13e0b-c148-4f3c-b5e2-a8b8ee925072)
 
@@ -60,6 +62,8 @@ else
 fi
 ```
 syaratnya termasuk pastikan email tidak dipakai, dan syarat password seperti (Must be containing >= 8 char, at least 1 lowercase & uppercase letter, and at least 1 number)
+
+kendala: -\
 
 screenshot (register):\
 ![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/7acc1506-71af-4cc2-860d-51955d7c3857)\
@@ -234,6 +238,8 @@ fi
 ```
 di kode tersebut terlihat sama seperti sebelumnya function2 langsung dijalankan berdasarkan input dari admin. Untuk pembuatan function edit_user saya hanya menggabungkan dari function delete_user dan add_user
 
+kendala: -\
+
 screenshot (login non admin):\
 ![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/3021af6a-582c-4846-a880-991d23fcd6a3)\
 screenshot (login admin):\
@@ -313,6 +319,8 @@ for region in genshin_character/*; do
     done
 done
 ```
+
+kendala: isi dari apa yang di ekstrak steghide berbentuk encode base64 bukan hex, jadi sedikit membingungkan dan membuat error di awal pengerjaan\
 
 isi log:\
 ![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/6c86daf6-19d4-47b8-81a8-e1c7e34d12af)\
