@@ -452,3 +452,5 @@ smax=($4>=max)$0:"";    <-- anomali
 max=($4>max)?$4:max 
 ...
 ```
+screenshot:\
+![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/d8fe42b1-a158-40ef-a7b9-2eac2aaed398)
