@@ -241,7 +241,7 @@ screenshot (login admin):\
 screenshot (forgot pw):\
 ![image](https://github.com/dimasandhk/Sisop-1-2024-MH-IT24/assets/70847887/8c2493c4-f757-4d37-a3bd-cf38726298b1)
 
-## Soal 3
+## Soal 3 (tidak revisi)
 ### poin a (awal.sh)
 Untuk poin a program dimulai dari download zip dan unzip semua file zip yang ada, kemudian di `awal.sh` saya gunakan `for in loop` untuk mengubah nama file yang kemudian di dekode dari hex ke ascii dari setiap file jpg yang didownload. Nama file jpg diubah ke `region - nama - element - senjata.jpg`. Kemudian setiap file jpg dimasukkan ke folder yang sesuai dengan nama regionnya.
 ```bash
@@ -321,35 +321,39 @@ isi txt (hasil decrypt ekstrak steghide dari gambar):\
 
 ## Soal 4
 ### minute_log.sh
-Mencatat penggunaan memory user setiap menit dengan command `free` dan `du`.
+Script dengan fungsi mencatat penggunaan memory user setiap menit.
 
 ```
-## Making the log file and dir required
-cd ~; if [! -d log] ;then mkdir log ; fi; cd log
-date=$(date "+%Y%m%d%k%M%S")
-min="metrics_$date.log"
-touch "$min"
-chmod 700 "$min"
+## Making directory required
+cd ~; if [ ! -d log ] ;then 
+    mkdir log
+fi; cd log
 ...
 ```
-Bagian ini membuat direktori dan log file beserta user premission. Nama log file dimasukkan ke dalam variabel agar mempermudah dijadikan input dalam kode selanjutnya.
-
+Bagian ini membuat direktori untuk menyimpan file log apabila folder `/log` tidak tersedia.
 ```
 ...
-## Header of log file
-echo "mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$min"
+## Making log file and its permission stat to user only
+file="metrics_$(date "+%Y%m%d%k%M%S").log"
+touch "$file"
+chmod 700 "$file"
+...
+```
+Membuat log file dengan nama file berasal dari waktu script dijalankan. Permission juga diganti hanya untuk user karena data bersifat sensitif.
+```
+...
+## Inserting header to log file
+echo "mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$file"
 
-## Runs on infinite loop
-while true ; do
-    ## Output log for every minute loop
-    { free -m; du -sh ~;} | awk 'NR==2 {print $2","$3","$4","$5","$6","$7}
-    NR==3 {print $2","$3","$4}
-    NR==4 {print $2","$1}
-    ' | paste -s -d ',' >> "$min" 
+## Output log
+{ free -m; du -sh ~;} | awk 'NR==2 {print $2","$3","$4","$5","$6","$7}
+NR==3 {print $2","$3","$4}
+NR==4 {print $2","$1}
+' | paste -s -d ',' >> "$file" 
 ...
         
 ```
-Barisan yang mengandung nama kolom dicetak terlebih dahulu di luar infinite loop agar tidak tercetak berulang-ulang ketika memory pengguna dicatat setiap menit.
+Memberikan header pada isi file lalu baru dimasukkan catatan penggunaan memori user. 
 
 Menyatukan output dari beberapa command dapat dicapai dengan menutupnya dalam kurung kurawal `{` sebelum dilakukan piping.
 
@@ -366,47 +370,72 @@ Hasil dari command kemudian dipilih-pilih dengan `awk` lalu disatukan oleh `past
 
 ```
 ...
-## Adding 'i' counter every minute
-i=$(($i+1))
-sleep 60
+## Make a scheduled job for minute log
+if [ -z $(crontab -lu $USER | grep minute_log.sh) ] ; then
+    touch cronjobs
+    echo "*/1 * * * * sh $(find /home/$USER -type f -name minute_log.sh)" > cronjobs
 
-## Create aggregate log file every hour
-if [ $(($i % 60)) -eq 0 ] ; then
-    sh aggregate_minutes_to_hourly_log.sh "$min"
+    ## The same but for hour log
+    if [ -z $(crontab -lu $USER | grep aggregate_minutes_to_hourly_log.sh) ]; then
+        echo "*/2 * * * * cd ~/log && sh $(find /home/$USER -type f -name aggregate_minutes_to_hourly_log.sh)" >> cronjobs
+    fi
+
+    crontab -u $USER cronjobs
+    rm cronjobs
 fi
+
+## Cleanup script
+## Execute this on the terminal if ur done w/ this script.
+#crontab -lu $USER | grep -v log.sh | crontab -u $USER -
 ```
-Digunakan `i` sebagai counter waktu dimana bertambah setiap menit. Jika `i` mencapai nilai 60, maka `if` statement akan menjalankan script yang memberikan nilai max, min, dan rata-rata dari setiap segi memori yang dicatat sejak program dijalankan. 
+Karena script akan dijalankan setiap menit, maka dibentuklah cron jobs yang akan menjalankan command dalam waktu yang ditentukan secara otomatis. 
+
+Bagian bawah terdapat script yang bisa dijalankan pengguna untuk menghapus cron jobs ketika sudah selesai digunakan.
 
 ### aggregate_minutes_to_hourly_log.sh
 ```
 ## Create the aggregate log file
-datehr=$(date "+%Y%m%d%k")
-hr="metrics_$datehr.log"
-touch "$hr"
-chmod 700 "$hr"
-min=$1
+time=$(date "+%Y%m%d%k")
+file="metrics_$time.log"
+touch "$file"
+chmod 700 "$file"
 
-echo "type,mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$hr"
+# Add header to log
+echo "type,mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$file"
 ...
 ```
-Menciptakan log file dan mencetak header untuk file aggregat dengan tambahan dimasukannya variabel yang berisi judul dari log file yang akan dipakai.
+Menciptakan log file lalu mencetak header untuk file aggregat dengan tambahan dimasukannya variabel yang berisi judul dari log file yang akan dipakai.
+```
+...
+# Counting ammount of records for the awk cmd later
+islog=$(ls | wc -l) 
+nonlog=$(ls | grep -v -E metrics_${time}[0-9]{4} | wc -l)
+records=$(($islog-$nonlog))
+...
+```
+Menghitung jumlah log file dalam jam tertentu. 
 
 ```
 ...
-## Generate min, max, and avg
-cat "$min" | awk 'BEGIN{FS=","; OFS=","} 
-    NR>1{ min=$4;
-        if ($4>=max) {smax=$0}    <-- Anomali if conditional
-        max=($4>max)?$4:max    
+## Calculating and printing min, max, and avg to log file
+cd ~/log && cat $(ls | grep -E metrics_${time}[0-9]{4} | paste -s -d " ") | awk -v n=$records 'BEGIN{FS=","; OFS=","}
+    NR==2 { max=min=$4 }
+    $1 !~ /[a-z]/ { 
+        if ($4 >= max) { smax = $0; } 
+        max = ($4 > max) ? $4 : max
 
-        if ($4<=min){smin=$0} 
-        min=($4<min)?$4:min 
+        if ($4 <= min){ smin = $0; } 
+        min = ($4 < min) ? $4 : min
+
+        for(i = 1; i <= NF; i++) sum[i]+=$i
     }
-    END {print "minimum", smax; print "maximum", smax }
-' >>"$hr"
+    END { print "minimum", smin; print "maximum", smax ; print "average", sum[1]/n, sum[2]/n, sum[3]/n, sum[4]/n, sum[5]/n, sum[6]/n, sum[7]/n, sum[8]/n, sum[9]/n, $10, sum[11]/n "G"}
+' >>"$file"
 ...
 ```
-Log file dibuka dan dicari *record*, konteks `awk`, dengan nilai maksimum dan minimumnya. Collumn 4 merepresentasikan shared memory. Hal itu menjadi patokan karena nilainya yang cenderung berubah-ubah dibanding dengan yang lain.
+Log file dibuka dan dicari *record*, konteks `awk`, dengan nilai rata-rata, maksimum, dan minimumnya. Collumn 4 merepresentasikan shared memory. Hal itu menjadi patokan karena nilainya yang cenderung berubah-ubah dibanding dengan yang lain.
+
+Bagian rata-rata dicetak satu per satu karena metode for loop cenderung bermasalah.
 ```
 mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size
 15552,2912,11490,412,1892,12639,976,0,976,/home/baboi,15G
@@ -422,32 +451,4 @@ Masih menjadi pertanyaan namun `if(cond)` dengan `(cond)?s1:s2` nampaknya memili
 smax=($4>=max)$0:"";    <-- anomali
 max=($4>max)?$4:max 
 ...
-```
-Bagian nilai rata-rata dipisahkan karena pencetakkan array dalam awk menggunakan for loop tidak dapat dihasilkan dalam satu baris.
-```
-...
-cat "$min" | awk -v usr="$USER" 'BEGIN{FS=","; OFS=","} 
-    NR>1{ for(i = 1; i <= NF; i++) sum[i]+=$i } 
-    END { print "average"; for(i = 1; i <= NF; i++) {
-            if (i!=10)  {print sum[i]/(NR-1)} 
-            else {print "/home/" usr}
-        }
-    }
-' | paste -s -d "," >>"$hr"
-
----Terminal---
-baboi@baboi:~/Downloads/test$ sh ss.sh
-average
-15552
-2909.6
-11492.6
-426.8
-1906.6
-12641.4
-976
-0
-976
-/home/baboi
-15
-
 ```

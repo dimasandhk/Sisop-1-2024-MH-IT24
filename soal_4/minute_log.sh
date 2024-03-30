@@ -1,30 +1,40 @@
 #! /bin/bash
 
-## Making the log file and dir required
-cd ~; if [! -d log] ;then mkdir log ; fi; cd log
-date=$(date "+%Y%m%d%k%M%S")
-min="metrics_$date.log"
-touch "$min"
-chmod 700 "$min"
+## Making directory required
+cd ~; if [ ! -d log ] ;then 
+    mkdir log
+fi; cd log
 
-## Header of log file
-echo "mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$min"
+## Making log file and its permission stat to user only
+file="metrics_$(date "+%Y%m%d%k%M%S").log"
+touch "$file"
+chmod 700 "$file"
 
-## Runs on infinite loop
-while true ; do
-    ## Output log for every minute loop
-    { free -m; du -sh ~;} | awk 'NR==2 {print $2","$3","$4","$5","$6","$7}
-    NR==3 {print $2","$3","$4}
-    NR==4 {print $2","$1}
-    ' | paste -s -d ',' >> "$min" 
-    #paste : combine all output lines into one and seperated by commas ","
-        
-    ## Adding 'i' counter every minute
-    i=$(($i+1))
-    sleep 60
+## Inserting header to log file
+echo "mem_total,mem_used,mem_free,mem_shared,mem_buff,mem_available,swap_total,swap_used,swap_free,path,path_size" >"$file"
 
-    ## Create aggregate log file every hour
-    if [ $(($i % 60)) -eq 0 ] ; then
-        sh aggregate_minutes_to_hourly_log.sh "$min"
+## Output log
+{ free -m; du -sh ~;} | awk 'NR==2 {print $2","$3","$4","$5","$6","$7}
+NR==3 {print $2","$3","$4}
+NR==4 {print $2","$1}
+' | paste -s -d ',' >> "$file" 
+
+## Make a scheduled job for minute log
+if [ -z $(crontab -lu $USER | grep minute_log.sh) ] ; then
+    touch cronjobs
+    echo "*/1 * * * * sh $(find /home/$USER -type f -name minute_log.sh)" > cronjobs
+
+    ## The same but for hour log
+    if [ -z $(crontab -lu $USER | grep aggregate_minutes_to_hourly_log.sh) ]; then
+        echo "*/2 * * * * cd ~/log && sh $(find /home/$USER -type f -name aggregate_minutes_to_hourly_log.sh)" >> cronjobs
     fi
-done
+
+    crontab -u $USER cronjobs
+    rm cronjobs
+fi
+
+## Cleanup script
+## Execute this on the terminal if ur done w/ this script.
+#crontab -lu $USER | grep -v log.sh | crontab -u $USER -
+
+exit 0
